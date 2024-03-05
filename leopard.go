@@ -16,8 +16,6 @@ import (
 	"math/bits"
 	"sync"
 	"unsafe"
-
-	"github.com/klauspost/cpuid/v2"
 )
 
 // leopardFF16 is like reedSolomon but for more than 256 total shards.
@@ -1059,25 +1057,6 @@ func initMul16LUT() {
 		for i := range lut.Lo[:] {
 			lut.Lo[i] = tmp[i&15] ^ tmp[((i>>4)+16)]
 			lut.Hi[i] = tmp[((i&15)+32)] ^ tmp[((i>>4)+48)]
-		}
-	}
-	if cpuid.CPU.Has(cpuid.SSSE3) || cpuid.CPU.Has(cpuid.AVX2) || cpuid.CPU.Has(cpuid.AVX512F) {
-		multiply256LUT = &[order][16 * 8]byte{}
-
-		for logM := range multiply256LUT[:] {
-			// For each 4 bits of the finite field width in bits:
-			shift := 0
-			for i := 0; i < 4; i++ {
-				// Construct 16 entry LUT for PSHUFB
-				prodLo := multiply256LUT[logM][i*16 : i*16+16]
-				prodHi := multiply256LUT[logM][4*16+i*16 : 4*16+i*16+16]
-				for x := range prodLo[:] {
-					prod := mulLog(ffe(x<<shift), ffe(logM))
-					prodLo[x] = byte(prod)
-					prodHi[x] = byte(prod >> 8)
-				}
-				shift += 4
-			}
 		}
 	}
 }

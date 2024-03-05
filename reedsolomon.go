@@ -17,8 +17,6 @@ import (
 	"io"
 	"runtime"
 	"sync"
-
-	"github.com/klauspost/cpuid/v2"
 )
 
 // Encoder is an interface to encode Reed-Salomon parity sets for your data.
@@ -477,7 +475,7 @@ func New(dataShards, parityShards int, opts ...Option) (Encoder, error) {
 	}
 
 	// Calculate what we want per round
-	r.o.perRound = cpuid.CPU.Cache.L2
+	r.o.perRound = -1
 	if r.o.perRound < 128<<10 {
 		r.o.perRound = 128 << 10
 	}
@@ -485,7 +483,7 @@ func New(dataShards, parityShards int, opts ...Option) (Encoder, error) {
 	divide := parityShards + 1
 	if avx2CodeGen && r.o.useAVX2 && (dataShards > maxAvx2Inputs || parityShards > maxAvx2Outputs) {
 		// Base on L1 cache if we have many inputs.
-		r.o.perRound = cpuid.CPU.Cache.L1D
+		r.o.perRound = -1
 		if r.o.perRound < 32<<10 {
 			r.o.perRound = 32 << 10
 		}
@@ -502,11 +500,6 @@ func New(dataShards, parityShards int, opts ...Option) (Encoder, error) {
 		}
 	}
 
-	if cpuid.CPU.ThreadsPerCore > 1 && r.o.maxGoroutines > cpuid.CPU.PhysicalCores {
-		// If multiple threads per core, make sure they don't contend for cache.
-		r.o.perRound /= cpuid.CPU.ThreadsPerCore
-	}
-
 	// 1 input + parity must fit in cache, and we add one more to be safer.
 	r.o.perRound = r.o.perRound / divide
 	// Align to 64 bytes.
@@ -519,7 +512,7 @@ func New(dataShards, parityShards int, opts ...Option) (Encoder, error) {
 
 	if r.o.minSplitSize <= 0 {
 		// Set minsplit as high as we can, but still have parity in L1.
-		cacheSize := cpuid.CPU.Cache.L1D
+		cacheSize := -1
 		if cacheSize <= 0 {
 			cacheSize = 32 << 10
 		}

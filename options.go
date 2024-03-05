@@ -3,8 +3,6 @@ package reedsolomon
 import (
 	"runtime"
 	"strings"
-
-	"github.com/klauspost/cpuid/v2"
 )
 
 // Option allows to override processing parameters.
@@ -45,12 +43,12 @@ var defaultOptions = options{
 	inversionCache: true,
 
 	// Detect CPU capabilities.
-	useSSSE3:      cpuid.CPU.Supports(cpuid.SSSE3),
-	useSSE2:       cpuid.CPU.Supports(cpuid.SSE2),
-	useAVX2:       cpuid.CPU.Supports(cpuid.AVX2),
-	useAVX512:     cpuid.CPU.Supports(cpuid.AVX512F, cpuid.AVX512BW, cpuid.AVX512VL),
-	useAvx512GFNI: cpuid.CPU.Supports(cpuid.AVX512F, cpuid.GFNI, cpuid.AVX512DQ),
-	useAvxGNFI:    cpuid.CPU.Supports(cpuid.AVX, cpuid.GFNI),
+	useSSSE3:      false,
+	useSSE2:       false,
+	useAVX2:       false,
+	useAVX512:     false,
+	useAvx512GFNI: false,
+	useAvxGNFI:    false,
 }
 
 // leopardMode controls the use of leopard GF in encoding and decoding.
